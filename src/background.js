@@ -119,18 +119,38 @@ function updateContextMenus() {
   });
 }
 
-// ref: https://github.com/gorhill/uBlock/issues/2067
-// Suspend all tabs until updateFilter is completed, and then this function
-// will be replaced and the suspended tabs will be loaded.
-//
-// @TODO:
-// This could still fail if the browser loads tabs before the extensions are loaded
-// (Chrome and Firefox for Android seems so).
-// In this case, we fallback to block on content script starting.
+let onBeforeRequestBlocker = function (details) {
+  const url = details.url;
+  const blockType = filter.isBlocked(url);
+  if (!blockType) { return; }
+
+  if (details.type === "main_frame") {
+    const redirectUrl = utils.getBlockedPageUrl(url, blockType, false);
+
+    // Firefox < 56 does not allow redirecting to an extension page
+    // even if it is listed in web_accessible_resources.
+    // Using data URI with meta or script refresh works but generates
+    // an extra history entry.
+    if (_isFxBelow56) {
+      chrome.tabs.update(details.tabId, {url: redirectUrl});
+      return {cancel: true};
+    }
+
+    return {redirectUrl: redirectUrl};
+  } else {
+    const redirectUrl = utils.getBlockedPageUrl(url, blockType, true);
+    return {redirectUrl: redirectUrl};
+  }
+};
+
+// returns a Promise if updateFilter is not yet completed.
+// (Available for Firefox >= 52)
+// When updateFilter is completed, this will be replaced by 
+// onBeforeRequestBlocker.
 let onBeforeRequestCallback = function (details) {
-  const {tabId, url} = details;
-  suspendedTabs.set(tabId, url);
-  return {cancel: true};
+  return updateFilterPromise.then(() => {
+    return onBeforeRequestBlocker(details);
+  });
 };
 
 chrome.webRequest.onBeforeRequest.addListener((details) => {
@@ -261,33 +281,5 @@ if (chrome.browserAction) {
 updateContextMenus();
 
 updateFilter().then(() => {
-  // replace onBeforeRequestCallback with the blocker
-  onBeforeRequestCallback = function (details) {
-    const url = details.url;
-    const blockType = filter.isBlocked(url);
-    if (!blockType) { return; }
-
-    if (details.type === "main_frame") {
-      const redirectUrl = utils.getBlockedPageUrl(url, blockType, false);
-
-      // Firefox < 56 does not allow redirecting to an extension page
-      // even if it is listed in web_accessible_resources.
-      // Using data URI with meta or script refresh works but generates
-      // an extra history entry.
-      if (_isFxBelow56) {
-        chrome.tabs.update(details.tabId, {url: redirectUrl});
-        return {cancel: true};
-      }
-
-      return {redirectUrl: redirectUrl};
-    } else {
-      const redirectUrl = utils.getBlockedPageUrl(url, blockType, true);
-      return {redirectUrl: redirectUrl};
-    }
-  };
-
-  // load the suspended tabs
-  suspendedTabs.forEach((url, tabId) => {
-    chrome.tabs.update(tabId, {url: url, active: false});
-  });
+  onBeforeRequestCallback = onBeforeRequestBlocker;
 });
