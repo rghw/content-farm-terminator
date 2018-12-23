@@ -1,5 +1,6 @@
 let filter;
 let updateFilterPromise;
+let suspendedTabs = new Map();
 
 let _isFxBelow56;
 Promise.resolve().then(() => {
@@ -118,8 +119,19 @@ function updateContextMenus() {
   });
 }
 
-// dummy function.  Will be replaced after updateFilter() completed.
-let onBeforeRequestCallback = function (details) {};
+// ref: https://github.com/gorhill/uBlock/issues/2067
+// Suspend all tabs until updateFilter is completed, and then this function
+// will be replaced and the suspended tabs will be loaded.
+//
+// @TODO:
+// This could still fail if the browser loads tabs before the extensions are loaded
+// (Chrome and Firefox for Android seems so).
+// In this case, we fallback to block on content script starting.
+let onBeforeRequestCallback = function (details) {
+  const {tabId, url} = details;
+  suspendedTabs.set(tabId, url);
+  return {cancel: true};
+};
 
 chrome.webRequest.onBeforeRequest.addListener((details) => {
   return onBeforeRequestCallback(details);
@@ -273,4 +285,9 @@ updateFilter().then(() => {
       return {redirectUrl: redirectUrl};
     }
   };
+
+  // load the suspended tabs
+  suspendedTabs.forEach((url, tabId) => {
+    chrome.tabs.update(tabId, {url: url, active: false});
+  });
 });
