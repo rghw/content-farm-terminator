@@ -6,6 +6,7 @@
 import sys
 import os
 import json
+import re
 from datetime import datetime
 
 CONFIG_FILE = "publish.config.json"
@@ -29,6 +30,21 @@ class Converter():
         oh.close()
 
     def cft_abp(ih, info):
+        """Convert to ABP (uBO) rule
+
+        https://help.eyeo.com/en/adblockplus/how-to-write-filters
+        https://github.com/gorhill/uBlock/wiki/Static-filter-syntax
+        """
+        def extract_key_part_from_regex(regex):
+            m = REGEX_KEY_PART.search(regex)
+            if m:                
+                return m.group(1)
+            else:
+                print(f"Warn: unable to parse {regex}", file=sys.stderr)
+                return None
+
+        REGEX_KEY_PART = re.compile(r"[?/](\w+)/?\(\?=")
+
         lm = str(datetime.now().isoformat(timespec='seconds'))
         print(f"! Last modified: {lm}")
 
@@ -53,10 +69,35 @@ class Converter():
 
             if url.startswith("/") and url.endswith("/"):
                 # RegExp rule
+
+                # special handling for several well known sites for better performance
+                if r"\.xuite\." in url:
+                    id = extract_key_part_from_regex(url)
+                    if id:
+                        print(f"{id}$document,domain=xuite.net")
+                        continue
+
+                if r"\.udn\." in url:
+                    id = extract_key_part_from_regex(url)
+                    if id:
+                        print(f"{id}$document,domain=blog.udn.com|album.udn.com")
+                        continue
+
+                if r"?pchome\." in url:
+                    id = extract_key_part_from_regex(url)
+                    if id:
+                        print(f"{id}$document,domain=pchome.com.tw")
+                        continue
+
+                # for unsupported sites or non-standardized formats, use original regex
                 print(f"{url}$document")
+
             else:
                 # General rule
-                print(f"{url}$document")
+                if "*" in url:
+                    print(f"{url}$document")
+                else:
+                    print(f"||{url}")
 
 def main():
     with open(os.path.join(os.path.dirname(__file__), CONFIG_FILE), "r") as f:

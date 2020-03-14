@@ -1,23 +1,23 @@
-! Last modified: 2020-03-14T15:14:54
+! Last modified: 2020-03-14T16:56:56
 ! Title: Nearly Content Farm Filters
 ! Expires: 3 days
 ! Description: Filter for content-farm-like sites, mostly in Chinese.
 ! Homepage: https://github.com/danny0838/content-farm-terminator/tree/gh-pages
 ! Licence: GPL 3.0
-0nion.com$document
-25xt.com$document
-94477.com$document
-b.bbi.com.tw$document
-bc3ts.com$document
-chuansong.me$document
-disp.cc$document
-entertainment14.net$document
-helplib.com$document
-iwaishin.com$document
-jimpop.core5.org$document
-looknews.us$document
-news.gamme.com.tw$document
-niusnews.com$document
-playbuzz.com$document
-ptt.jimpop.org$document
-today.line.me$document
+||0nion.com
+||25xt.com
+||94477.com
+||b.bbi.com.tw
+||bc3ts.com
+||chuansong.me
+||disp.cc
+||entertainment14.net
+||helplib.com
+||iwaishin.com
+||jimpop.core5.org
+||looknews.us
+||news.gamme.com.tw
+||niusnews.com
+||playbuzz.com
+||ptt.jimpop.org
+||today.line.me
