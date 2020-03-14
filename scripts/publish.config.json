@@ -1,0 +1,44 @@
+[
+  {
+    "source": "files/blocklist/content-farms.txt",
+    "publish": "files/dist/blocklist/abp-content-farms.txt",
+    "convert": {
+      "type": "cft_abp",
+      "data": {
+        "Title": "Content Farm Filters",
+        "Expires": "3 days",
+        "Description": "Filter for general content farms, mostly in Chinese.",
+        "Homepage": "https://github.com/danny0838/content-farm-terminator/tree/gh-pages",
+        "Licence": "GPL 3.0"
+      }
+    }
+  },
+  {
+    "source": "files/blocklist/nearly-content-farms.txt",
+    "publish": "files/dist/blocklist/abp-nearly-content-farms.txt",
+    "convert": {
+      "type": "cft_abp",
+      "data": {
+        "Title": "Nearly Content Farm Filters",
+        "Expires": "3 days",
+        "Description": "Filter for content-farm-like sites, mostly in Chinese.",
+        "Homepage": "https://github.com/danny0838/content-farm-terminator/tree/gh-pages",
+        "Licence": "GPL 3.0"
+      }
+    }
+  },
+  {
+    "source": "files/blocklist/sns-content-farms.txt",
+    "publish": "files/dist/blocklist/abp-sns-content-farms.txt",
+    "convert": {
+      "type": "cft_abp",
+      "data": {
+        "Title": "SNS Content Farm Filters",
+        "Expires": "3 days",
+        "Description": "Filter for content-farm related social media, mostly in Chinese.",
+        "Homepage": "https://github.com/danny0838/content-farm-terminator/tree/gh-pages",
+        "Licence": "GPL 3.0"
+      }
+    }
+  }
+]
